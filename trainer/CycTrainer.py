@@ -87,10 +87,8 @@ class Cyc_Trainer():
         self.ploss.vgg = self.ploss.vgg.to(device)
         self.ploss.lossfn = self.ploss.lossfn.to(device)
 
-        #Dataset loader
-        level = config['noise_level']  # set noise level
-
-        transforms_1 = [RandomAffine(degrees=level,translate=[0.02*level, 0.02*level],scale=[1-0.02*level, 1+0.02*level]),
+        # Dataset loader
+        transforms_1 = [RandomAffine(degrees=2,translate=[0.02, 0.02],scale=[1-0.02, 1+0.02]),
                    ToTensor(),
                    Normalize(0.5,0.5),
                    Resize(size_tuple = (config['size'], config['size']))
@@ -105,7 +103,7 @@ class Cyc_Trainer():
                         Resize(size_tuple = (config['cropsize'], config['cropsize']))
                    ]
         
-        self.dataloader = DataLoader(ImageDataset(config['dataroot'], level, transforms_1=transforms_1, transforms_2=transforms_2),
+        self.dataloader = DataLoader(ImageDataset(config['dataroot'], transforms_1=transforms_1, transforms_2=transforms_2),
                                 batch_size=config['batchSize'], shuffle=True, num_workers=config['n_cpu'], drop_last=True)
 
         val_transforms = [ToTensor(),
@@ -118,8 +116,6 @@ class Cyc_Trainer():
         self.trainloader_to_infer = DataLoader(ValDataset(config['dataroot'], transforms_ =val_transforms),
                                 batch_size=1, shuffle=False, num_workers=config['n_cpu'])
 
-    
-        
     
     def train(self):
         ###### Training ######
@@ -457,7 +453,7 @@ class Cyc_Trainer():
                     
                          
     def test(self,):
-        self.netG_A2B.load_state_dict(torch.load(self.config['save_root'] + 'netG_A2B.pth'))
+        self.netG_A2B.load_state_dict(torch.load(self.config['model_root']))
         
         os.makedirs(self.config['image_save'],exist_ok=True)
         with torch.no_grad():

@@ -8,7 +8,7 @@ import torchvision.transforms as transforms
 import torch
 
 class ImageDataset(Dataset):
-    def __init__(self, root,count = None,transforms_1=None,transforms_2=None):
+    def __init__(self, root, count = None,transforms_1=None,transforms_2=None):
 
         self.transform1 = transforms.Compose(transforms_1)
         self.transform2 = transforms.Compose(transforms_2)
