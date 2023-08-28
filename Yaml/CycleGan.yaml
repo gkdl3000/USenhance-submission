@@ -1,0 +1,39 @@
+#####
+name: CycleGan
+visdom: True
+port: 6022   #  port parameters
+save_root: './output/Cyc_0824/C_cnn_51_fixauxlamda/'
+image_save: './output/Cyc_0824/C_cnn_51_fixauxlamda/img/'
+
+# lamda weight
+Adv_lamda: 1
+Cyc_lamda: 10
+VGG_lamda: 2
+Aux_lamda: 1
+Id_lamda: 5
+
+epoch: 0        # starting epoch
+n_epochs: 300       # How often do you want to display output images during training
+clustering_epochs: 150
+batchSize: 8              # size of the batches
+# dataroot: "C:\\HanWorkspace\\dataset\\USenhance\\test_phase\\train"     # root directory of the dataset
+# val_dataroot: "C:\\HanWorkspace\\dataset\\USenhance\\test_phase\\valid" 
+dataroot: "../../dataset/USenhance/test_phase/train"     # root directory of the dataset
+val_dataroot: "../../dataset/USenhance/test_phase/valid" 
+lr: 0.0001                   # initial learning rate
+decay_epoch: 20            # epoch to start linearly decaying the learning rate to 0
+cropsize: 256             # size of the data crop
+size: 256                
+input_nc: 1         
+output_nc: 1                  
+cuda: True                
+n_cpu: 8
+grad_clip: 5
+pretrain: True
+device_ids: [0]
+
+## infer
+model_root: './output/Cyc_0824/C_cnn_51_2/0289_netG_A2B.pth'
+model_root2: './output/Cyc_0824/C_cnn_51_2/0299_netG_A2B.pth'
+infer_dataroot: 'C:\\HanWorkspace\\dataset\\USenhance\\submit_validation001\\low_quality_images'
+infer_image_save: 'C:\\Users\\tkdwn\\OneDrive\\Desktop\\USenhance_challenge_submission\\C_cnn_51_2\\high_quality_images_289_299'
