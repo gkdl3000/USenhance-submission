@@ -15,9 +15,7 @@ Id_lamda: 5
 epoch: 0        # starting epoch
 n_epochs: 300       # How often do you want to display output images during training
 clustering_epochs: 150
-batchSize: 8              # size of the batches
-# dataroot: "C:\\HanWorkspace\\dataset\\USenhance\\test_phase\\train"     # root directory of the dataset
-# val_dataroot: "C:\\HanWorkspace\\dataset\\USenhance\\test_phase\\valid" 
+batchSize: 8         
 dataroot: "../../dataset/USenhance/test_phase/train"     # root directory of the dataset
 val_dataroot: "../../dataset/USenhance/test_phase/valid" 
 lr: 0.0001                   # initial learning rate
