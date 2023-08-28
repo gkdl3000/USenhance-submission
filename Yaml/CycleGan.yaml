@@ -27,7 +27,7 @@ output_nc: 1
 cuda: True                
 n_cpu: 8
 grad_clip: 5
-pretrain: True
+pretrain: False
 device_ids: [0]
 
 ## inference
