@@ -36,7 +36,7 @@ val_dataroot: val path
 python train.py
 ```
 ## Finetune
-- use CycleGan_finetune.yaml file and write same options in training process except followings
+- Use CycleGan_finetune.yaml file and write same options in training process except followings
 
 ```
 epoch: 300
@@ -64,7 +64,21 @@ infer_image_save: high quality image save path
 ```
 python multiinference.py
 ```
- 
+
+## Reproduce the challenge submission model
+- Set your dataset path in CycleGan.yaml and CycleGan_finetune.yaml
+
+```
+dataroot {your train dataset path}
+val_dataroot {your train dataset path, no need to split train/valid}
+infer_dataroot {your low quality image folder for test}
+```
+- Sequentially run train, finetune, multiinference 
+```
+python train.py
+python finetune.py
+python multiinference.py
+```
 ## Use visdom：
 ```
 python -m visdom.server -p 6022
