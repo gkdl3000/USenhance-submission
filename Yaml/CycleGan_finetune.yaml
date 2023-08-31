@@ -12,8 +12,8 @@ VGG_lamda: 2
 Aux_lamda: 0.1
 Id_lamda: 5
 
-epoch: 0        # starting epoch
-n_epochs: 300       # How often do you want to display output images during training
+epoch: 300        # starting epoch
+n_epochs: 301       # How often do you want to display output images during training
 clustering_epochs: 150
 batchSize: 8         
 dataroot: "./datasets/USenhance/train"     # root directory of the dataset
@@ -27,12 +27,12 @@ output_nc: 1
 cuda: True                
 n_cpu: 8
 grad_clip: 5
-pretrain: False
-finetune: False
+pretrain: True
+finetune: True
 device_ids: [0]
 
 ## inference
-model_root: './output/Cyc_0824/C_cnn_51_2/0289_netG_A2B.pth'
-model_root2: './output/Cyc_0824/C_cnn_51_2/0299_netG_A2B.pth'
+model_root: './output/Cyc_0824/C_cnn_51_2/0299_netG_A2B.pth'
+model_root2: './output/Cyc_0824/C_cnn_51_2/0300_netG_A2B.pth'
 infer_dataroot: './datasets/submission/low_quality_images'
-infer_image_save: './datasets/submission/C_cnn_51_2/high_quality_images_289_299'
+infer_image_save: './datasets/submission/C_cnn_51_2/high_quality_images_299_300'

@@ -93,15 +93,23 @@ class Cyc_Trainer():
                    Normalize(0.5,0.5),
                    Resize(size_tuple = (config['size'], config['size']))
                    ]
-    
-        transforms_2 = [RandomAffine(degrees=5,translate=[0.05, 0.05],scale=[0.9, 1.1]),
-                        RandomCrop(size = (config['cropsize'], config['cropsize'])),
-                        ColorJitter(brightness = 0.05),
-                        RandomHorizontalFlip(0.5), 
-                        ToTensor(),
-                        Normalize(0.5,0.5),
-                        Resize(size_tuple = (config['cropsize'], config['cropsize']))
-                   ]
+        if config['finetune']:
+            transforms_2 = [RandomCrop(size = (config['cropsize'], config['cropsize'])),
+                            ColorJitter(brightness = 0.05),
+                            RandomHorizontalFlip(0.5), 
+                            ToTensor(),
+                            Normalize(0.5,0.5),
+                            Resize(size_tuple = (config['cropsize'], config['cropsize']))
+                    ]
+        else:
+            transforms_2 = [RandomAffine(degrees=5,translate=[0.05, 0.05],scale=[0.9, 1.1]),
+                            RandomCrop(size = (config['cropsize'], config['cropsize'])),
+                            ColorJitter(brightness = 0.05),
+                            RandomHorizontalFlip(0.5), 
+                            ToTensor(),
+                            Normalize(0.5,0.5),
+                            Resize(size_tuple = (config['cropsize'], config['cropsize']))
+                    ]
         
         self.dataloader = DataLoader(ImageDataset(config['dataroot'], transforms_1=transforms_1, transforms_2=transforms_2),
                                 batch_size=config['batchSize'], shuffle=True, num_workers=config['n_cpu'], drop_last=True)
@@ -404,7 +412,7 @@ class Cyc_Trainer():
             torch.save(self.netD_A.state_dict(), self.config['save_root'] + 'netD_A.pth')
             torch.save(self.netD_B.state_dict(), self.config['save_root'] + 'netD_B.pth')
 
-            if (epoch+1)%10==0:
+            if (epoch+1)%10==0 or self.config['finetune']:
                 torch.save(self.netG_A2B.state_dict(), self.config['save_root'] + '{:04d}_netG_A2B.pth'.format(epoch))
                 torch.save(self.netG_B2A.state_dict(), self.config['save_root'] + '{:04d}_netG_B2A.pth'.format(epoch))
                 torch.save(self.netD_A.state_dict(), self.config['save_root'] + '{:04d}_netD_A.pth'.format(epoch))
@@ -453,8 +461,16 @@ class Cyc_Trainer():
                     
                          
     def test(self,):
-        self.netG_A2B.load_state_dict(torch.load(self.config['model_root']))
         
+        alpha = 0.5
+        weight1 = torch.load(self.config['model_root'])
+        weight2 = torch.load(self.config['model_root2'])
+        weight = dict()
+        
+        for key in weight1.keys():
+            weight[key] = alpha * weight1[key] + (1-alpha) * weight2[key]
+
+        self.netG_A2B.load_state_dict(weight)
         os.makedirs(self.config['image_save'],exist_ok=True)
         with torch.no_grad():
             MAE = 0
@@ -465,7 +481,14 @@ class Cyc_Trainer():
             for i, batch in enumerate(self.val_data):
                 real_A = Variable(self.input_A_valid.copy_(batch['A']))
                 real_B = Variable(self.input_B_valid.copy_(batch['B']))
-                fake_B, aux_out = self.netG_A2B(real_A)
+
+                real_A_h = transforms.functional.hflip(real_A)
+                fake_B, _ = self.netG_A2B(real_A)
+                fake_B_h, _ = self.netG_A2B(real_A_h)
+                fake1 = fake_B
+                fake2 = transforms.functional.hflip(fake_B_h)
+                fake_B = (fake1+fake2)/2
+                
                 realimage_A = np.squeeze(tensor2image(real_A.data))
                 realimage_B = np.squeeze(tensor2image(real_B.data))
                 fakeimage_B = np.squeeze(tensor2image(fake_B.data))
@@ -519,6 +542,9 @@ class Cyc_Trainer():
     
     def multiinference(self,):
 
+        seed=1234
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
         alpha = 0.5
         weight1 = torch.load(self.config['model_root'])
         weight2 = torch.load(self.config['model_root2'])
@@ -528,27 +554,32 @@ class Cyc_Trainer():
             weight[key] = alpha * weight1[key] + (1-alpha) * weight2[key]
 
         self.netG_A2B.load_state_dict(weight)
-        val_transforms = [ToTensor(),
-                        Normalize(0.5,0.5),
-                        Resize(size_tuple = (self.config['size'], self.config['size']))]
+        val_transforms = [ColorJitter(brightness = 0.02),
+                          ToTensor(),
+                          Normalize(0.5,0.5),
+                          Resize(size_tuple = (self.config['size'], self.config['size']))]
         self.infer_data = DataLoader(InferDataset(self.config['infer_dataroot'], transforms_ = val_transforms),
                                 batch_size=1, shuffle=False, num_workers=self.config['n_cpu'])
         os.makedirs(self.config['infer_image_save'],exist_ok=True)
 
         with torch.no_grad():
-
+            
             for i, batch in enumerate(self.infer_data):
-                imgname = os.path.basename(batch['imgname'][0])
-                real_A = Variable(self.input_A_valid.copy_(batch['A']))
-                real_A_h = transforms.functional.hflip(real_A)
+                fake_B_arr = []
+                for j in range(3):
+                    imgname = os.path.basename(batch['imgname'][0])
+                    real_A = Variable(self.input_A_valid.copy_(batch['A']))
+                    real_A_h = transforms.functional.hflip(real_A)
 
-                fake_B, _ = self.netG_A2B(real_A)
-                fake_B_h, _ = self.netG_A2B(real_A_h)
-                
-                fake1 = fake_B
-                fake2 = transforms.functional.hflip(fake_B_h)
-                fake_B = (fake1+fake2)/2
-                
+                    fake_B, _ = self.netG_A2B(real_A)
+                    fake_B_h, _ = self.netG_A2B(real_A_h)
+                    
+                    fake1 = fake_B
+                    fake2 = transforms.functional.hflip(fake_B_h)
+                    fake_B_j = (fake1+fake2)/2
+                    fake_B_arr.append(fake_B_j)
+                    
+                fake_B = (fake_B_arr[0] + fake_B_arr[1] + fake_B_arr[2])/3
                 fakeimage_B = np.squeeze(tensor2image(fake_B.data))
 
                 cv2.imwrite(os.path.join(self.config['infer_image_save'], imgname), fakeimage_B)

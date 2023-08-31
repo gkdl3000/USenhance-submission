@@ -10,7 +10,7 @@ def get_config(config):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, default='Yaml/CycleGan.yaml', help='Path to the config file.')
+    parser.add_argument('--config', type=str, default='Yaml/CycleGan_finetune.yaml', help='Path to the config file.')
     opts = parser.parse_args()
     config = get_config(opts.config)
     
