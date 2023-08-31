@@ -35,10 +35,25 @@ val_dataroot: val path
  ```
 python train.py
 ```
+## Finetune
+- use CycleGan_finetune.yaml file and write same options in training process except followings
+
+```
+epoch: 300
+n_epochs: 301
+pretrain: True
+finetune: True
+```
+- Run finetune:
+```
+python finetune.py
+```
+
+
 
 ## Inference and save images
 
-- Modify CycleGan.yaml options as follows
+- Modify CycleGan_finetune.yaml options as follows
 ```
 model_root: model weight path to inference
 model_root2: model2 weight path to averaging with above weight
